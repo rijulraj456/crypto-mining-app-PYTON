@@ -1,0 +1,120 @@
+import requests
+import pandas as pd
+import numpy as np
+from sklearn.ensemble import RandomForestRegressor
+from datetime import datetime
+import time
+
+# API keys and configuration
+COINGECKO_API = "https://api.coingecko.com/api/v3"
+ENERGY_API = "https://api.example.com/energy-prices"  # Replace with real energy API
+MINING_POOL_API = "https://api.miningpoolstats.stream"  # Example mining pool API
+
+# Function to fetch crypto prices
+def get_crypto_prices(coins=["bitcoin", "ethereum"]):
+    try:
+        url = f"{COINGECKO_API}/simple/price?ids={','.join(coins)}&vs_currencies=usd"
+        response = requests.get(url)
+        response.raise_for_status()
+        return response.json()
+    except Exception as e:
+        print(f"Error fetching crypto prices: {e}")
+        return None
+
+# Function to fetch mining pool data (difficulty, reward)
+def get_mining_data(coin="bitcoin"):
+    try:
+        url = f"{MINING_POOL_API}/{coin}"
+        response = requests.get(url)
+        response.raise_for_status()
+        data = response.json()
+        return {
+            "difficulty": data.get("difficulty", 0),
+            "block_reward": data.get("block_reward", 0)
+        }
+    except Exception as e:
+        print(f"Error fetching mining data: {e}")
+        return {"difficulty": 0, "block_reward": 0}
+
+# Function to fetch energy prices (mock implementation)
+def get_energy_price():
+    try:
+        # Replace with real energy API call
+        response = requests.get(ENERGY_API)
+        response.raise_for_status()
+        return response.json().get("price_per_kwh", 0.15)  # Default: $0.15/kWh
+    except Exception as e:
+        print(f"Error fetching energy price: {e}")
+        return 0.15
+
+# AI model to predict profitability
+def train_profitability_model():
+    # Sample historical data (replace with real dataset)
+    data = {
+        "price_usd": [50000, 51000, 49000, 52000],
+        "difficulty": [20e9, 21e9, 19e9, 22e9],
+        "energy_cost": [0.12, 0.15, 0.10, 0.13],
+        "hashrate": [100, 120, 110, 130],
+        "profit": [0.001, 0.0012, 0.0009, 0.0013]
+    }
+    df = pd.DataFrame(data)
+    
+    X = df[["price_usd", "difficulty", "energy_cost", "hashrate"]]
+    y = df["profit"]
+    
+    model = RandomForestRegressor(n_estimators=100, random_state=42)
+    model.fit(X, y)
+    return model
+
+# Predict profitability for a given coin
+def predict_profitability(model, price, difficulty, energy_cost, hashrate=100):
+    features = np.array([[price, difficulty, energy_cost, hashrate]])
+    return model.predict(features)[0]
+
+# Main mining optimization loop
+def optimize_mining():
+    coins = ["bitcoin", "ethereum"]
+    model = train_profitability_model()
+    
+    while True:
+        energy_cost = get_energy_price()
+        print(f"Current energy cost: ${energy_cost}/kWh")
+        
+        best_coin = None
+        best_profit = -float("inf")
+        
+        for coin in coins:
+            # Fetch data
+            prices = get_crypto_prices([coin])
+            if not prices:
+                continue
+            price = prices[coin]["usd"]
+            
+            mining_data = get_mining_data(coin)
+            difficulty = mining_data["difficulty"]
+            
+            # Predict profitability
+            profit = predict_profitability(model, price, difficulty, energy_cost)
+            print(f"{coin.capitalize()} - Predicted profit: {profit:.6f} BTC/day")
+            
+            if profit > best_profit:
+                best_profit = profit
+                best_coin = coin
+        
+        if best_coin:
+            print(f"Optimal coin to mine: {best_coin.capitalize()} (Profit: {best_profit:.6f} BTC/day)")
+            
+            # Adjust mining rig (mock implementation)
+            if energy_cost < 0.10:  # Use renewable energy if cost is low
+                print("Using renewable energy for mining...")
+                # Add code to control mining rig (e.g., via NiceHash API)
+            else:
+                print("Energy cost too high, pausing mining...")
+        
+        # Wait before next iteration
+        time.sleep(300)  # Check every 5 minutes
+
+# Run the program
+if __name__ == "__main__":
+    print("Starting AI Crypto Mining Optimizer...")
+    optimize_mining()
