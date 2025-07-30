@@ -100,21 +100,4 @@ def optimize_mining():
             if profit > best_profit:
                 best_profit = profit
                 best_coin = coin
-        
-        if best_coin:
-            print(f"Optimal coin to mine: {best_coin.capitalize()} (Profit: {best_profit:.6f} BTC/day)")
-            
-            # Adjust mining rig (mock implementation)
-            if energy_cost < 0.10:  # Use renewable energy if cost is low
-                print("Using renewable energy for mining...")
-                # Add code to control mining rig (e.g., via NiceHash API)
-            else:
-                print("Energy cost too high, pausing mining...")
-        
-        # Wait before next iteration
-        time.sleep(300)  # Check every 5 minutes
-
-# Run the program
-if __name__ == "__main__":
-    print("Starting AI Crypto Mining Optimizer...")
-    optimize_mining()
+      
