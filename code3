@@ -1,0 +1,3 @@
+  # Predict profitability
+            profit = predict_profitability(model, price, difficulty, energy_cost)
+            print(f"{coin.capitalize()} - Predicted profit: {profit:.6f} BTC/day")
